@@ -9,5 +9,9 @@ class TaskApplicationTests {
 	@Test
 	void contextLoads() {
 	}
+	@Test
+	void EmailValidationSuccess(){
+		Em
+	}
 
 }
