@@ -9,12 +9,17 @@ import com.employment.task.repositories.UserRepository;
 import com.employment.task.services.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.validation.Errors;
 import org.springframework.validation.FieldError;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -28,7 +33,10 @@ public class UsersController {
     private final UserConstraints userConstraints;
 
     @PostMapping
-    public ResponseEntity<?> createUser(@RequestBody User user, Errors errors) {
+    public ResponseEntity<?> createUser(@RequestBody @Validated User user, BindingResult bindingResult, Errors errors) {
+        List<String> bindingErrors= checkForErrors(bindingResult);
+        if(!bindingErrors.isEmpty())
+            throw new InvalidRequestException(String.join("\n", bindingErrors));
         if (!userService.isUserAdult(user.getBirthDate()))
             throw new InvalidRequestException("User must be at least " + userConstraints.getMinAge() + " years old");
         if (!userService.isEmailValid(user.getEmail(), errors))
@@ -39,7 +47,7 @@ public class UsersController {
         return ResponseEntity.status(HttpStatus.CREATED).body("User created successfully");
     }
 
-    @PatchMapping("/{id}")
+    @PatchMapping(value = "/{id}")
     public ResponseEntity<?> updateUserField(@PathVariable("id") int id,
                                              @RequestBody Map<String, Object> fields, Errors errors) {
         //Validation and preparing to save
@@ -108,5 +116,15 @@ public class UsersController {
     @ExceptionHandler({ResourceNotFoundException.class, InvalidRequestException.class})
     public ResponseEntity<?> handleException(Exception ex) {
         return ResponseEntity.badRequest().body(ex.getMessage());
+    }
+    public List<String> checkForErrors(BindingResult bindingResult) {
+        List <String>errors = new LinkedList<>();
+        if (bindingResult.hasErrors()) {
+            for (FieldError error : bindingResult.getFieldErrors()) {
+                String errorMessage = error.getDefaultMessage();
+                errors.add( errorMessage);
+            }
+        }
+        return errors;
     }
 }

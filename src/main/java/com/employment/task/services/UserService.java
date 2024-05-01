@@ -14,11 +14,11 @@ import java.time.LocalDate;
 public class UserService {
     private final EmailValidator emailValidator;
     private final UserConstraints userConstraints;
-    public boolean isUserAdult(LocalDate birthDate){
-            int minAge = userConstraints.getMinAge();
-            LocalDate minDate = LocalDate.now().minusYears(minAge);
-            return !birthDate.isAfter(minDate);
-        }
+    public boolean isUserAdult  (LocalDate birthDate){
+        LocalDate currentDate = LocalDate.now();
+        LocalDate adultDate = birthDate.plusYears(userConstraints.getMinAge());
+        return currentDate.isAfter(adultDate);
+    }
         @Transactional
         public boolean isEmailValid (String email,Errors errors){
             emailValidator.validate(email,errors);

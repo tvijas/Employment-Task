@@ -12,9 +12,7 @@ import java.util.regex.Pattern;
 @RequiredArgsConstructor
 public class EmailValidator implements Validator {
     private final UserRepository userRepository;
-    private static final String EMAIL_PATTERN =
-            "^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@"
-                    + "[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$";
+    private static final String EMAIL_PATTERN = "^\\S+@\\S+$";
 
     private final Pattern pattern = Pattern.compile(EMAIL_PATTERN);
 
@@ -38,7 +36,7 @@ public class EmailValidator implements Validator {
         }
     }
 
-    private boolean isValidEmail(String email) {
+    public boolean isValidEmail(String email) {
         Matcher matcher = pattern.matcher(email);
         return matcher.matches();
     }
