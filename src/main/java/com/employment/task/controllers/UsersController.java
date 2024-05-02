@@ -9,7 +9,6 @@ import com.employment.task.repositories.UserRepository;
 import com.employment.task.services.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.Errors;
@@ -18,7 +17,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -35,8 +33,8 @@ public class UsersController {
     @PostMapping
     public ResponseEntity<?> createUser(@RequestBody @Validated User user, BindingResult bindingResult, Errors errors) {
         //Validation
-        List<String> bindingErrors= checkForErrors(bindingResult);
-        if(!bindingErrors.isEmpty())
+        List<String> bindingErrors = checkForErrors(bindingResult);
+        if (!bindingErrors.isEmpty())
             throw new InvalidRequestException(String.join("\n", bindingErrors));
         if (!userService.isUserAdult(LocalDate.parse(user.getBirthDate())))
             throw new InvalidRequestException("User must be at least " + userConstraints.getMinAge() + " years old");
@@ -56,37 +54,38 @@ public class UsersController {
         UserEntity userEntity = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id " + id));
         fields.forEach((key, value) -> {
-                    switch (key) {
-                        case "email" -> {
-                            if (!userService.isEmailValid((String) value, errors))
-                                throw new InvalidRequestException(errors.getFieldErrors().stream()
-                                        .map(FieldError::getDefaultMessage)
-                                        .collect(Collectors.joining("; ")));
-                            userEntity.setEmail((String) value);
-                        }
-                        case "first_name" -> userEntity.setFirstName((String) value);
-                        case "last_name" -> userEntity.setLastName((String) value);
-                        case "birth_date" -> {
-                            if (!userService.isUserAdult(LocalDate.parse((CharSequence) value)))
-                                throw new InvalidRequestException("User must be at least " + userConstraints.getMinAge() + " years old");
-                            userEntity.setBirthDate(LocalDate.parse((CharSequence) value));
-                        }
-                        case "address" -> userEntity.setAddress((String) value);
-                        case "phone_number" -> userEntity.setPhoneNumber((String) value);
-                        default -> throw new InvalidRequestException("Invalid field name");
-                    }
-                });
+            switch (key) {
+                case "email" -> {
+                    if (!userService.isEmailValid((String) value, errors))
+                        throw new InvalidRequestException(errors.getFieldErrors().stream()
+                                .map(FieldError::getDefaultMessage)
+                                .collect(Collectors.joining("; ")));
+                    userEntity.setEmail((String) value);
+                }
+                case "first_name" -> userEntity.setFirstName((String) value);
+                case "last_name" -> userEntity.setLastName((String) value);
+                case "birth_date" -> {
+                    if (!userService.isUserAdult(LocalDate.parse((CharSequence) value)))
+                        throw new InvalidRequestException("User must be at least " + userConstraints.getMinAge() + " years old");
+                    userEntity.setBirthDate(LocalDate.parse((CharSequence) value));
+                }
+                case "address" -> userEntity.setAddress((String) value);
+                case "phone_number" -> userEntity.setPhoneNumber((String) value);
+                default -> throw new InvalidRequestException("Invalid field name");
+            }
+        });
         //Updating user field
         userRepository.saveAndFlush(userEntity);
         return ResponseEntity.ok().body("User updated successfully");
     }
+
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateUser(@PathVariable("id") int id, @RequestBody @Validated User user,BindingResult bindingResult, Errors errors) {
+    public ResponseEntity<?> updateUser(@PathVariable("id") int id, @RequestBody @Validated User user, BindingResult bindingResult, Errors errors) {
         //Validation
         UserEntity userEntity = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id " + id));
-        List<String> bindingErrors= checkForErrors(bindingResult);
-        if(!bindingErrors.isEmpty())
+        List<String> bindingErrors = checkForErrors(bindingResult);
+        if (!bindingErrors.isEmpty())
             throw new InvalidRequestException(String.join("\n", bindingErrors));
         if (!userService.isUserAdult(LocalDate.parse(user.getBirthDate())))
             throw new InvalidRequestException("User must be at least " + userConstraints.getMinAge() + " years old");
@@ -99,6 +98,7 @@ public class UsersController {
         userRepository.saveAndFlush(userEntity);
         return ResponseEntity.ok().body("User updated successfully");
     }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable("id") int id) {
         //Validation
@@ -108,6 +108,7 @@ public class UsersController {
         userRepository.delete(userEntity);
         return ResponseEntity.ok().body("User deleted successfully");
     }
+
     @GetMapping("/search")
     public ResponseEntity<?> searchUsersByBirthDateRange(@RequestParam("from") LocalDate from,
                                                          @RequestParam("to") LocalDate to) {
@@ -118,16 +119,18 @@ public class UsersController {
         List<UserEntity> users = userRepository.findByBirthDateBetween(from, to);
         return ResponseEntity.ok().body(users);
     }
+
     @ExceptionHandler({ResourceNotFoundException.class, InvalidRequestException.class})
     public ResponseEntity<?> handleException(Exception ex) {
         return ResponseEntity.badRequest().body(ex.getMessage());
     }
+
     public List<String> checkForErrors(BindingResult bindingResult) {
-        List <String>errors = new LinkedList<>();
+        List<String> errors = new LinkedList<>();
         if (bindingResult.hasErrors()) {
             for (FieldError error : bindingResult.getFieldErrors()) {
                 String errorMessage = error.getDefaultMessage();
-                errors.add( errorMessage);
+                errors.add(errorMessage);
             }
         }
         return errors;
