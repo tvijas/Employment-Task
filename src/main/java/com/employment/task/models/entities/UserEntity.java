@@ -31,7 +31,7 @@ public class UserEntity {
         this.email = user.getEmail();
         this.firstName = user.getFirstName();
         this.lastName = user.getLastName();
-        this.birthDate = user.getBirthDate();
+        this.birthDate = LocalDate.parse(user.getBirthDate());
         this.address = user.getAddress();
         this.phoneNumber = user.getPhoneNumber();
     }
@@ -39,7 +39,7 @@ public class UserEntity {
         this.email = user.getEmail();
         this.firstName = user.getFirstName();
         this.lastName = user.getLastName();
-        this.birthDate = user.getBirthDate();
+        this.birthDate = LocalDate.parse(user.getBirthDate());
         this.address = user.getAddress();
         this.phoneNumber = user.getPhoneNumber();
     }

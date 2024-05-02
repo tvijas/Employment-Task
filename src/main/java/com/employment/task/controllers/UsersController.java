@@ -34,15 +34,17 @@ public class UsersController {
 
     @PostMapping
     public ResponseEntity<?> createUser(@RequestBody @Validated User user, BindingResult bindingResult, Errors errors) {
+        //Validation
         List<String> bindingErrors= checkForErrors(bindingResult);
         if(!bindingErrors.isEmpty())
             throw new InvalidRequestException(String.join("\n", bindingErrors));
-        if (!userService.isUserAdult(user.getBirthDate()))
+        if (!userService.isUserAdult(LocalDate.parse(user.getBirthDate())))
             throw new InvalidRequestException("User must be at least " + userConstraints.getMinAge() + " years old");
         if (!userService.isEmailValid(user.getEmail(), errors))
             throw new InvalidRequestException(errors.getFieldErrors().stream()
                     .map(FieldError::getDefaultMessage)
                     .collect(Collectors.joining("; ")));
+        //Saving user
         userRepository.saveAndFlush(new UserEntity(user));
         return ResponseEntity.status(HttpStatus.CREATED).body("User created successfully");
     }
@@ -79,11 +81,14 @@ public class UsersController {
         return ResponseEntity.ok().body("User updated successfully");
     }
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateUser(@PathVariable("id") int id, @RequestBody User user, Errors errors) {
+    public ResponseEntity<?> updateUser(@PathVariable("id") int id, @RequestBody @Validated User user,BindingResult bindingResult, Errors errors) {
         //Validation
         UserEntity userEntity = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id " + id));
-        if (!userService.isUserAdult(user.getBirthDate()))
+        List<String> bindingErrors= checkForErrors(bindingResult);
+        if(!bindingErrors.isEmpty())
+            throw new InvalidRequestException(String.join("\n", bindingErrors));
+        if (!userService.isUserAdult(LocalDate.parse(user.getBirthDate())))
             throw new InvalidRequestException("User must be at least " + userConstraints.getMinAge() + " years old");
         if (!userService.isEmailValid(user.getEmail(), errors))
             throw new InvalidRequestException(errors.getFieldErrors().stream()
@@ -98,7 +103,7 @@ public class UsersController {
     public ResponseEntity<?> deleteUser(@PathVariable("id") int id) {
         //Validation
         UserEntity userEntity = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with id " + id));
+                .orElseThrow(() -> new InvalidRequestException("User not found with id " + id));
         //Deleting user
         userRepository.delete(userEntity);
         return ResponseEntity.ok().body("User deleted successfully");

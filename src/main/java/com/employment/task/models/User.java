@@ -4,16 +4,16 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.executable.ValidateOnExecution;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.time.LocalDate;
 
 @Data
-@AllArgsConstructor
 public class User {
     @Valid @NotBlank(message = "email must not be blank")
     @JsonProperty("email")
@@ -24,9 +24,11 @@ public class User {
     @Valid @NotBlank(message = "last_name must not be blank")
     @JsonProperty("last_name")
     private String lastName;
+    @Valid @NotBlank(message = "birth_date must not be blank")
+    @Pattern(regexp = "^\\d{4}-\\d{2}-\\d{2}$",message = "birth_date must be \"yyyy-MM-dd\"")
     @JsonProperty("birth_date")
     @JsonFormat(pattern = "yyyy-MM-dd")
-    private LocalDate birthDate;
+    private String birthDate;
     @JsonProperty("address")
     private String address;
     @JsonProperty("phone_number")
@@ -41,8 +43,9 @@ public class User {
         this.email = email;
         this.firstName = firstName;
         this.lastName = lastName;
-        this.birthDate = LocalDate.parse(birthDate);
+        this.birthDate = birthDate;
         this.address = address;
         this.phoneNumber = phoneNumber;
     }
+
 }
