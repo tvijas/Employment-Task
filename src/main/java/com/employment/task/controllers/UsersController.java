@@ -43,8 +43,7 @@ public class UsersController {
                     .map(FieldError::getDefaultMessage)
                     .collect(Collectors.joining("; ")));
         //Saving user
-        userRepository.saveAndFlush(new UserEntity(user));
-        return ResponseEntity.status(HttpStatus.CREATED).body("User created successfully");
+        return ResponseEntity.status(HttpStatus.CREATED).body(userRepository.saveAndFlush(new UserEntity(user)));
     }
 
     @PatchMapping(value = "/{id}")
